@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+	<div class="col-12">
+        <h3>Edit Catalog Item: {{item.name }}</h3>
+		<form action="#" method="post">
+			<div class="form-group">
+				<label for="name">Name:</label>
+				<input type ="text" maxlength="100" class="form-control" name="name" value="{{item.name }}">
+
+				<label for="description">Description:</label>
+				<textarea class="form-control" maxlength="250" rows="3" name="description">{{item.description}}</textarea>
+
+				<label for="name">Url:</label>
+				<input type ="text" maxlength="100" class="form-control" name="url" value="{{item.url }}">
+
+
+				<label for="categor">Category:</label>
+				<select class="form-control" id="category_id" name="category_id">
+			        {% for category in categories %}
+			        	{% if category.id == item.category_id %}
+			            	<option value="{{ category.id }}" selected="selected">{{ category.name }}</option>
+			            {% else %}
+			           		<option value="{{ category.id }}">{{ category.name }}</option>
+			        	{% endif %}
+			        {% endfor %}
+				</select>
+				</br>
+                
+                <div class="btn-group">
+					<button type="submit" id="submit" class="btn btn-sm btn-outline-secondary">Save</button>
+					<a href='{{ url_for("getCategoryItem", category_id=item.category_id, item_id=item.id) }}'>
+						<button type="button" class="btn btn-sm btn-outline-secondary">Cancel</button>
+					</a>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}
