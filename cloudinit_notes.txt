@@ -1,0 +1,140 @@
+FROM AWS LIGHTSAIL CONSOLE
+download key
+add rule on networking tab for custom tcp 2200
+add rule on networking tab for custom udp 123
+
+ON MAC
+cd ~/Downloads
+chmod 600 LightsailDefaultPrivateKey-us-west-2.pem
+ssh -i LightsailDefaultPrivateKey-us-west-2.pem ubuntu@54.187.229.244
+
+# https://aws.amazon.com/premiumsupport/knowledge-center/set-change-root-linux/
+sudo su
+passwd root
+# user/pass
+# to delete root password
+# passwd –d root
+
+
+ON REMOTE
+sudo apt-get update
+sudo apt-get upgrade
+
+# https://aws.amazon.com/premiumsupport/knowledge-center/new-user-accounts-linux-instance/
+sudo adduser grader --disabled-password
+
+# GIVE SUDOERS ACCESS
+sudo touch /etc/sudoers.d/grader
+sudo nano /etc/sudoers.d/grader
+# ADD this line
+grader ALL=(ALL) NOPASSWD:ALL
+
+# CHANGE TO NEW USER
+sudo su grader
+cd /home/grader/
+mkdir .ssh
+touch .ssh/authorized_keys
+chmod 700 .ssh
+chmod 644 .ssh/authorized_keys
+nano .ssh/authorized_keys
+# copy in results of this command run on Mac
+# ssh-keygen -y
+# Enter file in which the key is (/Users/username/.ssh/id_rsa): grader_key_udacity.pem
+
+
+LOGIN AS GRADER TO REMOTE
+ssh -i grader_key_udacity.pem grader@54.187.229.244 -p 2200
+
+# CHANGE PORTS
+sudo nano /etc/ssh/sshd_config
+# edit port 22 to port 2200
+# disable password authentication
+sudo service ssh restart
+sudo service sshd restart
+
+sudo ufw status
+ubuntu@ip-172-26-11-112:~$ sudo ufw default deny incoming
+ubuntu@ip-172-26-11-112:~$ sudo ufw default allow outgoing
+ubuntu@ip-172-26-11-112:~$ sudo ufw status
+sudo ufw allow 2200/tcp
+sudo ufw allow www
+sudo ufw allow 123/udp
+sudo ufw enable
+
+
+sudo apt-get install python python-pip
+sudo pip2 install --upgrade pip
+sudo pip2 install flask packaging oauth2client redis passlib flask-httpauth
+sudo pip2 install sqlalchemy flask-sqlalchemy psycopg2-binary bleach requests
+sudo apt-get install git-core
+
+# ON REMOTE
+# check for UTC
+timedatectl
+
+
+# INSTALL APACHE
+# http://flask.pocoo.org/docs/1.0/deploying/mod_wsgi/
+sudo apt-get install apache2
+sudo apt-get install libapache2-mod-wsgi
+sudo /etc/init.d/apache2 restart
+# see who apache user is
+ps -ef | egrep '(httpd|apache2|apache)' | grep -v `whoami` | grep -v root | head -n1 | awk '{print $1}'
+# www-data
+
+# INSTALL POSTGRES
+sudo apt-get install postgresql
+sudo -u postgres psql
+# WE ARE NOW IN PSQL SHELL AS POSTGRES USER
+# commands would be different if part of a userdata.sh file
+# wouldn't need sudo -u postgres prefix
+createuser catalog;
+alter user catalog with password 'catalog';
+ALTER ROLE catalog WITH password 'catalog';
+CREATE DATABASE catalog;
+grant all privileges on database catalog to catalog;
+# confirm what port we're using
+SELECT * FROM pg_settings WHERE name = 'port';
+
+# CLONE DOWN REPO INTO PROPER LOCATION
+# add deploy key to github
+# use default key from aws or other
+# copy into user/profile/settings/ssh and gpg keys section of github profile
+# have to clone app into place where you have permission to write
+cd /srv
+git clone git@github.com:user/catalog.git
+
+# CREATE A WSGI FILE TO MAKE APPLICATION AVAILABLE
+# create catalog.wsgi in same location as catalog.py
+# contents are
+        import sys
+        sys.path.insert(0, '/srv/catalog/catalog')
+
+        from catalog import app as application
+
+
+
+# EDIT MODWSGI FILE
+sudo nano /etc/apache2/sites-enabled/000-default.conf
+
+# add lines
+        ServerName http://ipaddress.xip.io
+        WSGIScriptAlias / /srv/catalog/catalog/catalog.wsgi 
+        <Directory /srv/catalog>
+            Require all granted
+        </Directory>
+
+
+# RESTART APACHE
+sudo apache2ctl restart
+
+
+# FIX SETTINGS IN models.py
+# this is a hack, should be reading from a configuration file
+# quick and dirty is to edit the engine = create_engine('postgresql://user:pass@localhost:5432/dbname')
+sudo vim catalog/models.py
+# use absolute path for client_secrets file
+# /srv/catalog/client_secrets.json
+
+# edit seed_data to use my email
+sudo vim seed_data.py

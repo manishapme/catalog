@@ -32,7 +32,7 @@ from models import (
 )
 
 app = Flask(__name__)
-
+app.secret_key = 'super_secret_key'
 
 CLIENT_PATH = '../client_secrets.json'
 CLIENT_ID = json.loads(open(CLIENT_PATH, 'r').read())['web']['client_id']
@@ -313,5 +313,4 @@ def deleteItem(category_id=None, item_id=None):
 
 
 if __name__ == '__main__':
-    app.secret_key = 'super_secret_key'
     app.run(host='0.0.0.0', port=5000, debug=True)

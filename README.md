@@ -40,6 +40,11 @@ Populate the database with test data by running `python catalog/seed_data.py`.
 
 To run simply execute ```python catalog/catalog.py``` in your console.
 
+### Installing in Linux Environment
+
+Different steps are required to productionize a version of this app. Notes can
+be found [here](https://github.com/manishapme/catalog/blob/master/cloudinit_notes.txt) 
+
 ## Built With
 
 Python
