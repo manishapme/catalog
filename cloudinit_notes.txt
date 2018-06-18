@@ -1,3 +1,21 @@
+### SERVER INFORMATION
+IP: 54.187.229.244
+URL: http://54.187.229.244.xip.io/
+USERNAME: grader
+
+### INSTALLED SOFTWARE (NON-STANDARD)
+apache2
+libapache2-mod-wsgi
+postgres
+git-core
+pip2
+flask
+oauth2client
+sqlalchemy
+psycopg2-binary
+requests
+
+
 FROM AWS LIGHTSAIL CONSOLE
 download key
 add rule on networking tab for custom tcp 2200
@@ -15,10 +33,18 @@ passwd root
 # to delete root password
 # passwd –d root
 
+# Forcing Key Based Authentication
+sudo nano /etc/ssh/sshd_config
+# change PasswordAuthentication option to No
+# change PermitRootLogin to no
+sudo service ssh restart
+
 
 ON REMOTE
 sudo apt-get update
 sudo apt-get upgrade
+# Note, if you are still seeing a message that there are updates available after running this, use the next command
+sudo apt full-upgrade
 
 # https://aws.amazon.com/premiumsupport/knowledge-center/new-user-accounts-linux-instance/
 sudo adduser grader --disabled-password
@@ -64,8 +90,8 @@ sudo ufw enable
 
 sudo apt-get install python python-pip
 sudo pip2 install --upgrade pip
-sudo pip2 install flask packaging oauth2client redis passlib flask-httpauth
-sudo pip2 install sqlalchemy flask-sqlalchemy psycopg2-binary bleach requests
+sudo pip2 install flask oauth2client
+sudo pip2 install sqlalchemy psycopg2-binary requests
 sudo apt-get install git-core
 
 # ON REMOTE
@@ -138,3 +164,10 @@ sudo vim catalog/models.py
 
 # edit seed_data to use my email
 sudo vim seed_data.py
+
+# THIRD PARTY RESOURCES
+EC2 Instance provided by AWS Lightsail
+Documentation on adding root password: https://aws.amazon.com/premiumsupport/knowledge-center/set-change-root-linux/
+Add new user: https://aws.amazon.com/premiumsupport/knowledge-center/new-user-accounts-linux-instance/
+Deploying flask app: # http://flask.pocoo.org/docs/1.0/deploying/mod_wsgi/
+Other information on processes needed provided by Udacity FullStack nanodegree Linux security module.
